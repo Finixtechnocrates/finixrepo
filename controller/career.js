@@ -13,7 +13,7 @@ var storage = multer.diskStorage({
       cb(null, "./uploads");
     },
     filename: function (req, file, cb) {
-      cb(null, Date.now() + file.originalname)
+      cb(null, file.originalname)
     }
   })
 
@@ -32,7 +32,7 @@ router.post('/newcareer', upload.single('file'), async(req,res) => {
            apply: req.body.apply,
            email: req.body.email,
           relocation: req.body.relocation,
-          resume: req.file.fieldname,
+          resume: req.file.originalname,
             created_at: Date.now()   
         }
         await Carrer.create(carrerobj)

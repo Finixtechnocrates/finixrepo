@@ -70,7 +70,7 @@ async function Nodemailer(carrerobj) {
         let mailContent={
           from: 'Finix <info@finixtechnocrates.com>',
           to: 'Finix <info@finixtechnocrates.com>',
-          subject: 'Contact',
+          subject: 'Career',
           text: 'Hi,This is a test mail sent using Nodemailer',
           html: `<h1>Someone send resume to us</h1><br><p1>Name=${carrerobj.name}</p1>
                  <br><p1>Designation=${carrerobj.designation}</p1><br><p1>Applyfor=${carrerobj.apply}</p1>

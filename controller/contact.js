@@ -17,16 +17,30 @@ let MAIN_URL = "http://localhost:3000"
 
 router.post('/newcontact', async(req,res) => {
     try{ 
+      if(!req.body.name){
+        return res.status(400).json({message:"Please enter your name"})
+      }
+      if(!req.body.email){
+        return res.status(400).json({message:"Please enter your email"})
+      }
+      if(!req.body.mobile){
+        return res.status(400).json({message:"Please enter your mobile"})
+      }
+      if(!req.body.subject){
+        return res.status(400).json({message:"Please enter subject"})
+      }
+      if(!req.body.message){
+        return res.status(400).json({message:"Please enter message"})
+      }
 
         var contactobj = {
             name : req.body.name,
             email : req.body.email,
             mobile: req.body.mobile,
             subject:req.body.subject,
-            message: req.body.message ,
-            created_at: Date.now()   
+            message: req.body.message    
         }
-        await Nodemailer("hii","cvhsvh","Terrance")
+        await Nodemailer(contactobj,"Terrance")
         await Contact.create(contactobj)
          res.status(200).json({msg:`Contact added successfully`})
     }catch(err){
@@ -35,80 +49,38 @@ router.post('/newcontact', async(req,res) => {
 })
 
 
-async function Nodemailer(errmsg , funname, userinfo) {
-    try{
-        console.info("Nodemailer start >>>>>>>>>>>>>>>>>>>>")
+async function Nodemailer(contactobj) {
+  try{
+      console.info("Nodemailer start >>>>>>>>>>>>>>>>>>>>")
 
-        const transporter = nodemailer.createTransport(smtpTransport({
-            host:'mail.finixtechnocrates.com',
-            secureConnection: false,
-            tls: {
-              rejectUnauthorized: false
-            },
-            port: 465,
-            auth: {
-                user: EMAIL,
-                pass: PASSWORD,
-          }
-        }));
-
-        // let transporter = nodemailer.createTransport({
-        //     service: "webmail",
-        //     secure: true,
-        //     port: 465,
-        //     auth: {
-        //       user: EMAIL,
-        //       pass: PASSWORD,
-        //     },
-        //   });
-          let MailGenerator = new Mailgen({
-            theme: "cerberus",
-            product: {
-              name: errmsg,
-              link: MAIN_URL,
-            },
-          });
-
-          let resp= {
-            body: {
-             title:  funname ,
-             intro: errmsg.stack,
-             action: {
-             button: {
-                color: '#22BC66', // Optional action button color
-                text: 'Check now',
-                link: 'https://github.com/'
-            }
+      const transporter = nodemailer.createTransport(smtpTransport({
+          host:'mail.finixtechnocrates.com',
+          secureConnection: false,
+          tls: {
+            rejectUnauthorized: false
           },
-            outro: userinfo
+          port: 465,
+          auth: {
+              user: EMAIL,
+              pass: PASSWORD,
         }
-            // table: {
-            //     data: [
-            //       {
-            //         FunctionName : funname,
-            //         description: errmsg,
-            //       },
-            //     ],
-            //   },
-           //   outro: "Looking forward to do more business with you",
+      })); 
+        let mailContent={
+          from: 'Finix <info@finixtechnocrates.com>',
+          to: 'Finix <info@finixtechnocrates.com>',
+          subject: 'Contact',
+          text: 'Hi,This is a test mail sent using Nodemailer',
+          html: `<h1>Someone want to contact us</h1><br><p1>Name=${contactobj.name}</p1>
+                 <br><p1>Email=${contactobj.email}</p1><br><p1>Mobile=${contactobj.mobile}</p1>
+                 <br><p1>Subject=${contactobj.subject}</p1><br><p1>Message=${contactobj.message}</p1>`,
+        };
+       transporter
+        .sendMail(mailContent)
+        .then(() => {
+          console.info("Email send");
+        })
+        .catch((error) => console.error(error));
         
-          };
-
-          let mail = MailGenerator.generate(resp);
-          let message = {
-            from: EMAIL,
-            to: EMAIL,
-            subject: "Ecomm-server",
-            html: mail,
-          };
-
-          transporter
-          .sendMail(message)
-          .then(() => {
-            console.info("Email send");
-          })
-          .catch((error) => console.error(error));
-          
 
     }catch (error) {
         console.error("Nodemailer error >>>>",error);

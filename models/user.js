@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
       type:String,
       required:true
     },
-    last_name:{
+    emp_number:{
       type:String,
       required:true
     },
@@ -17,14 +17,18 @@ const userSchema = new mongoose.Schema({
        type:String,
        required:true
     },
+    email:{
+       type:String,
+       required:true
+    },
+    is_active:{
+        type:Boolean,
+        default: false
+    },
     role:{
         type:String,
-        enum:["ADMIN", "USER"],
-        default:"USER"
-    },
-    wallet:{
-        type:Number,
-        default:0
+        enum:["ADMIN", "EMPLOYEE"],
+        default:"EMPLOYEER"
     },
     address:{
         type:String

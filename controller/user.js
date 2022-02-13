@@ -5,14 +5,15 @@ const router = express.Router()
 const bcrypt = require('bcrypt');
 var jwt = require('jsonwebtoken');
 var config = require('../config/local')
+var Nodemailer = require('../lib/util')
 // var randomNumber = require('../lib/util')
 
-router.get('/list' , authorization, async(req, res) => {
+router.get('/list' ,  async(req, res) => {
     try{
-        if(req.user.user_type != 'ADMIN')
-        {
-           return res.status(401).json({message:"Invalid request"})
-        }
+        // if(req.user.user_type != 'ADMIN')
+        // {
+        //    return res.status(401).json({message:"Invalid request"})
+        // }
         var userlist = await User.find()
         if(userlist)
         {
@@ -37,17 +38,21 @@ function randomNumber() {
 
 router.post('/add', async(req,res) => {
     try{ 
-          var pass = randomNumber()
-        var user = new User({
-             name : req.body.name,
-            last_name : req.body.last_name,
+         const d = new Date();
+         let val = ''+ d.getFullYear() + (d.getMonth()+1) + d.getDate();
+         let pass = randomNumber()
+         let user = new User({
+            name : req.body.name,
+            emp_number : val,
             contact : req.body.contact,
             role : req.body.role,
             address : req.body.address,
             password: pass,
+            email:req.body.email,
             gender : req.body.gender
-        })
+          })
         await User.create(user)
+        await Nodemailer(req.body.email, user)
          res.status(200).json({msg:`User registerd successfully`, Password:pass , Contact:req.body.contact })
     }catch(err){
          res.status(500).json({message:err.message})
@@ -56,11 +61,12 @@ router.post('/add', async(req,res) => {
 
 router.post('/login' , async(req, res) =>{
  try{
-    if(!req.body.contact)
+     console.log(req.body)
+    if(!req.body.empNumber)
     {
-        return res.status(400).json({msg: "Please enter the valid contact number"})
+        return res.status(400).json({msg: "Please enter the Employee Name"})
     }
-    let query = { contact: req.body.contact, is_deleted: false };
+    let query = { emp_number: req.body.empNumber, is_deleted: false };
     var userdetails = await User.findOne(query)
       if(userdetails)
       {
@@ -95,7 +101,6 @@ router.post('/login' , async(req, res) =>{
 
 router.post('/logout', authorization,  async(req, res) => {
     try{
-
       if(!req.user)
       {
           return res.status(400).json({message:"Invalid request"})
@@ -103,14 +108,13 @@ router.post('/logout', authorization,  async(req, res) => {
       var query = {user_id:req.user.user_id, sessionId: req.user.sessionId}
       await userSession.deleteOne(query)
       return res.status(200).json({ message: "User Logout Successfully" });
-
     }catch(err){
         return res.status(500).json({message:err.message})
     }
 })
 
 
-router.get('/:id',authorization ,async(req, res) => {
+router.get('/:id', authorization ,async(req, res) => {
     try{
       if(!req.params.id){
           res.status(400).json({message:'Please enter id'})

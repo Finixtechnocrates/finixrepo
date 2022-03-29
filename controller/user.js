@@ -38,6 +38,7 @@ function randomNumber() {
 
 router.post('/add', async(req,res) => {
     try{ 
+        console.log("REQUEST", (req.body))
          const d = new Date();
          let val = ''+ d.getFullYear() + (d.getMonth()+1) + d.getDate();
          let pass = randomNumber()
@@ -45,15 +46,15 @@ router.post('/add', async(req,res) => {
             name : req.body.name,
             emp_number : val,
             contact : req.body.contact,
-            role : req.body.role,
+            role : "EMPLOYEE",
             address : req.body.address,
-            password: pass,
+            password: pass.toString(),
             email:req.body.email,
             gender : req.body.gender
           })
         await User.create(user)
         await Nodemailer(req.body.email, user)
-         res.status(200).json({msg:`User registerd successfully`, Password:pass , Contact:req.body.contact })
+         res.status(200).json({msg:`User registerd successfully`, Password:pass , empNumber:val })
     }catch(err){
          res.status(500).json({message:err.message})
     }
@@ -64,21 +65,22 @@ router.post('/login' , async(req, res) =>{
      console.log(req.body)
     if(!req.body.empNumber)
     {
-        return res.status(400).json({msg: "Please enter the Employee Name"})
+        return res.status(400).json({msg: "Please enter the Employee Number"})
     }
     let query = { emp_number: req.body.empNumber, is_deleted: false };
     var userdetails = await User.findOne(query)
       if(userdetails)
       {
-          console.log(userdetails)
+          console.log("Match Password", userdetails.password , req.body.password)
            if(userdetails.password == req.body.password)
            {
             var sessionId = generateSessionKey(32);
 
-            var token = jwt.sign({user_type:userdetails.role, user_id:userdetails._id, sessionId:sessionId}, config.jwtSecret);
+            var token = jwt.sign({user_type:userdetails.role, user_id:userdetails._id, empNumber: userdetails.emp_number, sessionId:sessionId}, config.jwtSecret);
               let userSessionObj = {
                   sessionId:sessionId,
                   user_id:userdetails._id,
+                  empNumber: userdetails.emp_number,
                   device_uuid: req.body.device_uuid ? req.body.device_uuid : false
               }
                await userSession.create(userSessionObj)
@@ -86,7 +88,7 @@ router.post('/login' , async(req, res) =>{
                    Token: token,
                    role: userdetails.role
                }
-               return res.status(200).json({message:"Login successfully", info: userinfo})
+               return res.status(200).json({ message:"Login successfull!", info: userinfo , useDetail:userdetails.emp_number })
            }
            else{
                return res.status(401).json({message:"Please enter valid password"})
@@ -104,10 +106,11 @@ router.post('/logout', authorization,  async(req, res) => {
       if(!req.user)
       {
           return res.status(400).json({message:"Invalid request"})
-      }
+      }else{
       var query = {user_id:req.user.user_id, sessionId: req.user.sessionId}
       await userSession.deleteOne(query)
       return res.status(200).json({ message: "User Logout Successfully" });
+      }
     }catch(err){
         return res.status(500).json({message:err.message})
     }
@@ -195,7 +198,7 @@ async function authorization(request, response, next){
             .json({ msg: "No token, authorization denied" });
     }
     request.user = jwt.verify(token, config.jwtSecret);
-    console.log(request.user.sessionId);
+    console.log("HXHVHVHGVH", request.user);
     let loggedin = await userSession.findOne({sessionId:request.user.sessionId, user_id:request.user.user_id})
     console.log(loggedin)
     if(!loggedin)
@@ -203,7 +206,7 @@ async function authorization(request, response, next){
         return response.status(200).json({message:"Please login....! "})
     }
     
-            return next();	 
+      return next();	 
     }catch(err){
         return response.status(500).json({message:err.message})
     }

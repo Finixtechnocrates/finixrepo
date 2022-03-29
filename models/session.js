@@ -13,6 +13,9 @@ const userSessionSchema = new mongoose.Schema({
         type:String, 
         default:false
     },
+    empNumber:{
+       type: String
+    },
     user_id: {
         type: mongoose.Schema.ObjectId,
         ref: "User",

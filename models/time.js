@@ -1,16 +1,19 @@
 const mongoose = require('mongoose')
 
 
-const timeSheetSchema = new mongoose.Schema({
+const timeSchema = new mongoose.Schema({
     start_date:{
-        type: Date
+        type: Date,
+        required: true
     },
     end_date:{
-        type: Date
+        type: Date,
+        required: true
     },
     user_id:{
         type: mongoose.Schema.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        required: true
     },
     time_sheet:[{
        day:{
@@ -22,4 +25,4 @@ const timeSheetSchema = new mongoose.Schema({
     }]
 })
 
-mongoose.exports = mongoose.model('TimeSheet', timeSheetSchema)
+module.exports = mongoose.model('Time', timeSchema)
